@@ -10,7 +10,7 @@ class User((Base)):
     id:Mapped[int] = mapped_column(Integer,primary_key=True)
     full_name:Mapped[str] = mapped_column(String(200))
     email:Mapped[str] = mapped_column(String(100),unique=True)
-    password:Mapped[str] = mapped_column(String(200))
+    hashed_pw:Mapped[str] = mapped_column(String(200))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 class Product((Base)):

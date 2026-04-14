@@ -1,10 +1,20 @@
 from flask import Flask,request,jsonify
+from flask_jwt_extended import JWTManager,jwt_required,create_access_token
+from flask_bcrypt import Bcrypt
 from sqlalchemy import create_engine,select
 from sqlalchemy.orm import sessionmaker
 from database import Base,User,Product,Payment,Sales
+from flask_cors import CORS
 from datetime import datetime
 
 app = Flask(__name__)
+app.config["JWT_SECRET_KEY"]="nbgkkjhw654"
+
+CORS(app)
+
+jwt=JWTManager(app)
+
+bcrypt=Bcrypt(app)
 
 DATABASE_URL= "postgresql+psycopg2://postgres:C0717824020@localhost:5432/api_pos"
 
@@ -42,17 +52,21 @@ def register():
             if existing_user:
                 return jsonify({"error":"Email already registered"}),409
             
+            hashed_pw = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+            
             new_user = User(
                 full_name=data['full_name'],
                 email=data['email'],
-                password=data['password'],
+                hashed_pw=hashed_pw,
                 created_at=datetime.utcnow()
             )
 
             mysession.add(new_user)
             mysession.commit()
 
-            return jsonify({"message":"User registered successfully"}),201
+            token=create_access_token(identity=data['email'])
+
+            return jsonify({"message":"User registered successfully","token":f"{token}"}),201
         
         else:
             return jsonify({"msg":"Method not allowed"}),405
@@ -79,16 +93,19 @@ def login():
             if not existing_user:
                 return{"error":"Invalid email"},401
             
-            if not password:
+            if not bcrypt.check_password_hash(existing_user.hashed_pw,password):
                 return{"error":"Invalid password"},401
+            
+            token=create_access_token(identity=data['email'])
             
             return jsonify({
                 "message":"Login successful",
                 "user": {
                     "id": existing_user.id,
                     "email":existing_user.email,
-                    "password":existing_user.password
-                }
+                    "full_name":existing_user.full_name
+                     },
+                    "token":f"{token}"
             }),200
         
         else:
@@ -97,6 +114,7 @@ def login():
         return jsonify({"error":str(e)})
     
 @app.route("/products",methods=allowed_methods)
+@jwt_required()
 def products():
     try:
         method = request.method.lower()
@@ -145,6 +163,7 @@ def products():
         return jsonify({"error":str(e)}),500
     
 @app.route("/sales",methods=allowed_methods)
+@jwt_required()
 def sales():
     try:
         method = request.method.lower()
@@ -172,29 +191,17 @@ def sales():
                 return({"error":"All fields are required"}),400
             
             new_sale = Sales(
-            product_id = product_id,
+            product_id = product_id
             )
 
             mysession.add(new_sale)
             mysession.commit()
 
-            return jsonify({"message": "A new sale has been madeed "}),201
+            return jsonify({"message": "A new sale has been made "}),201
         
         else:
             return jsonify({"error":"Method not allowed"}),405
         
     except Exception as e:
         return jsonify({"error":str(e)}),500
-
-        
-
-
-
-
-
-
-
-
-
-
 app.run(debug=True)
