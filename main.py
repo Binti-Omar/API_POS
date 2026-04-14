@@ -204,4 +204,7 @@ def sales():
         
     except Exception as e:
         return jsonify({"error":str(e)}),500
+    
+@app.route('/stk-push')
+@app.route('/stk-call-back')
 app.run(debug=True)
