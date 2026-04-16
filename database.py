@@ -27,6 +27,7 @@ class Sales((Base)):
     product_id:Mapped[int] = mapped_column(ForeignKey('products.id'))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+# Payment - id, sale_id, mrid, crid, trans_code, trans_amount, phone_paid, status created_at
 class Payment(Base):
     __tablename__ = 'payments'
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

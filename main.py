@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from database import Base,User,Product,Payment,Sales
 from flask_cors import CORS
 from datetime import datetime
+from mpesa import make_stk_push
 
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"]="nbgkkjhw654"
@@ -205,6 +206,27 @@ def sales():
     except Exception as e:
         return jsonify({"error":str(e)}),500
     
-@app.route('/stk-push')
-@app.route('/stk-call-back')
+@app.route('/stk-push',methods = allowed_methods)
+def stk_push():
+    data = request.get_json()
+    stk_response = make_stk_push(data)
+    # create a paymrnt with only id,saleid,mrid,crid,created at
+    print(stk_response)
+
+    return jsonify(stk_response)
+
+@app.route('/stk-call-back',methods = allowed_methods)
+def call_back():
+    data = request.get_json()
+    print("stk callback data:-----------------",data)
+
+    # fetch the payment record using mrid,mrid and crid
+    # update payment record with transaction code,transaction amount and status
+    return jsonify({"message":"callback received"}),200
+
+# @app.route('/mpesa-payments')
+# def payments():
+
+
+
 app.run(debug=True)

@@ -11,7 +11,7 @@ saf_short_code = "174379"
 saf_stk_push_url="https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
 saf_token_url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
 saf_passkey = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"
-my_call_url = "https://shelter-verbose-compress.ngrok-free.dev"
+my_call_url = "https://shelter-verbose-compress.ngrok-free.dev/stk-call-back"
 
 # time will be sent to the stk push
 # request is for sending http like axios
@@ -53,6 +53,7 @@ password = generate_password()
 print(password)
 
 def make_stk_push(payload):
+        print("paylod:-----------------")
         amount = payload['amount']
         phone_number = payload['phone_number']
         push_data = {
@@ -70,13 +71,14 @@ def make_stk_push(payload):
         }
 
         response = requests.post(
-            saf_token_url,
+            saf_stk_push_url,
             json=push_data,
             headers=headers)
 
         response_data = response.json()
+        print("response:------",response_data)
 
         return response_data
 
-c = make_stk_push({"amount":"1","phone_number":"254717824020"})
-print(c)
+# stk = make_stk_push({"amount":"1","phone_number":"254717824020"})
+# print(stk)
