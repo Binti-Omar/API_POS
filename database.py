@@ -32,9 +32,12 @@ class Payment(Base):
     __tablename__ = 'payments'
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     sale_id: Mapped[int] = mapped_column(ForeignKey("sales.id"))
+    mrid: Mapped[str] = mapped_column(String(100))
+    crid: Mapped[str] = mapped_column(String(100))
     trans_code: Mapped[str] = mapped_column(String(100))
     trans_amount: Mapped[float] = mapped_column(Float)
     phone_paid: Mapped[str] = mapped_column(String(20))
+    status: Mapped[str] = mapped_column(String(50))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 

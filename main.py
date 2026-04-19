@@ -208,24 +208,85 @@ def sales():
     
 @app.route('/stk-push',methods = allowed_methods)
 def stk_push():
-    data = request.get_json()
-    stk_response = make_stk_push(data)
-    # create a paymrnt with only id,saleid,mrid,crid,created at
-    print(stk_response)
+    try:
+        data = request.get_json()
 
-    return jsonify(stk_response)
+        # create a payment with only id,saleid,mrid,crid,created at
+        sale_id = data.get('sale_id')
+        trans_amount = data.get('amount')
+        phone_paid = data.get('phone_number')
 
+        if not sale_id or not trans_amount or not phone_paid:
+            return jsonify({"error": "sale_id, phone_number and amount are required"}), 400
+        
+        new_payment = Payment(
+            sale_id=sale_id,
+            mrid=mrid,
+            crid=crid,
+            phone_paid=phone_paid,
+            trans_amount=float(trans_amount),
+            status="Pending"
+        )
+
+        mysession.add(new_payment)
+        mysession.commit()
+
+        stk_response = make_stk_push({
+            "phone_number": phone_paid,
+            "mrid": mrid,
+            "crid": crid,
+            "amount": trans_amount
+        })
+        print(stk_response)
+
+        return jsonify({
+            "message": "STK push sent",
+            "response": stk_response,
+            "phone_number": phone_paid,
+            "amount": trans_amount
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error":str(e)}),500
+    
 @app.route('/stk-call-back',methods = allowed_methods)
 def call_back():
     data = request.get_json()
     print("stk callback data:-----------------",data)
 
-    # fetch the payment record using mrid,mrid and crid
+    # fetch the payment record using mrid and crid
     # update payment record with transaction code,transaction amount and status
     return jsonify({"message":"callback received"}),200
 
-# @app.route('/mpesa-payments')
-# def payments():
+@app.route('/mpesa-payments', methods=allowed_methods)
+def mpesa_payments():
+    try:
+        method = request.method.lower()
+        if method == 'get':
+            query = select(Payment)
+            payments = mysession.scalars(query).all()
+
+            result = []
+
+            for p in payments:
+                result.append({
+                    "id": p.id,
+                    "sale_id": p.sale_id,
+                    "mrid": p.mrid,
+                    "crid": p.crid,
+                    "trans_code": p.trans_code,
+                    "trans_amount": p.trans_amount,
+                    "phone_paid": p.phone_paid,
+                    "status": p.status,
+                    "created_at": p.created_at
+                })
+
+            return jsonify(result), 200
+        else:
+            return jsonify({"error":"Method not allowed"}),405
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 
