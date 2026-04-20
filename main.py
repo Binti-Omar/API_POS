@@ -216,13 +216,19 @@ def stk_push():
         trans_amount = data.get('amount')
         phone_paid = data.get('phone_number')
 
-        if not sale_id or not trans_amount or not phone_paid:
+        if sale_id == None or trans_amount == None or  phone_paid == None:
             return jsonify({"error": "sale_id, phone_number and amount are required"}), 400
+        
+        stk_response = make_stk_push({
+            "phone_number": phone_paid,
+            "amount": trans_amount
+        })
+        print(stk_response)
         
         new_payment = Payment(
             sale_id=sale_id,
-            mrid=mrid,
-            crid=crid,
+            mrid=stk_response.get("MerchantRequestID"),
+            crid=stk_response.get("CheckoutRequestID"),
             phone_paid=phone_paid,
             trans_amount=float(trans_amount),
             status="Pending"
@@ -230,14 +236,6 @@ def stk_push():
 
         mysession.add(new_payment)
         mysession.commit()
-
-        stk_response = make_stk_push({
-            "phone_number": phone_paid,
-            "mrid": mrid,
-            "crid": crid,
-            "amount": trans_amount
-        })
-        print(stk_response)
 
         return jsonify({
             "message": "STK push sent",
@@ -255,7 +253,13 @@ def call_back():
     print("stk callback data:-----------------",data)
 
     # fetch the payment record using mrid and crid
+    query = select(Payment).where(Payment.mrid==data['Body']['stkCallback']['MerchantRequestID'],Payment.crid==data['Body']['stkCallback']['CheckoutRequestID'])  
+    existing_payment = mysession.scalars(query).first()
+
     # update payment record with transaction code,transaction amount and status
+    existing_payment.trans_code = data['Body']['stkCallback']['CallbackMetadata']['Item'][1]['Value']
+    mysession.commit()
+    
     return jsonify({"message":"callback received"}),200
 
 @app.route('/mpesa-payments', methods=allowed_methods)

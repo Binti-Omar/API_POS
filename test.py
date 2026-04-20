@@ -1,0 +1,2 @@
+test =  {'Body': {'stkCallback': {'MerchantRequestID': '4574-403f-871d-5f820d6523bd6747', 'CheckoutRequestID': 'ws_CO_20042026192532838717824020', 'ResultCode': 0, 'ResultDesc': 'The service request is processed successfully.', 'CallbackMetadata': {'Item': [{'Name': 'Amount', 'Value': 1}, {'Name': 'MpesaReceiptNumber', 'Value': 'UDK691LTY9'}, {'Name': 'Balance'}, {'Name': 'TransactionDate', 'Value': 20260420192546}, {'Name': 'PhoneNumber', 'Value': 254717824020}]}}}}
+print(test['Body']['stkCallback']['CallbackMetadata']['Item'][1]['Value'])

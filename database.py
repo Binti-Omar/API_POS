@@ -34,7 +34,7 @@ class Payment(Base):
     sale_id: Mapped[int] = mapped_column(ForeignKey("sales.id"))
     mrid: Mapped[str] = mapped_column(String(100))
     crid: Mapped[str] = mapped_column(String(100))
-    trans_code: Mapped[str] = mapped_column(String(100))
+    trans_code: Mapped[str] = mapped_column(String(100), nullable=True)
     trans_amount: Mapped[float] = mapped_column(Float)
     phone_paid: Mapped[str] = mapped_column(String(20))
     status: Mapped[str] = mapped_column(String(50))
