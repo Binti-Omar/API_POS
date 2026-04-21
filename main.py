@@ -256,10 +256,15 @@ def call_back():
     query = select(Payment).where(Payment.mrid==data['Body']['stkCallback']['MerchantRequestID'],Payment.crid==data['Body']['stkCallback']['CheckoutRequestID'])  
     existing_payment = mysession.scalars(query).first()
 
-    # update payment record with transaction code,transaction amount and status
-    existing_payment.trans_code = data['Body']['stkCallback']['CallbackMetadata']['Item'][1]['Value']
-    mysession.commit()
-    
+    if int(data['Body']['stkCallback']['ResultCode'])==0:
+        # update payment record with transaction code,transaction amount and status
+        existing_payment.trans_code = data['Body']['stkCallback']['CallbackMetadata']['Item'][1]['Value']
+        existing_payment.status="Success"
+
+    else:
+        existing_payment.status="Failed"
+        mysession.commit()
+
     return jsonify({"message":"callback received"}),200
 
 @app.route('/mpesa-payments', methods=allowed_methods)
