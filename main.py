@@ -46,16 +46,20 @@ def register():
         if method == "post":
             data = request.get_json()
 
+             # Check all fields are provided
             if data["full_name"] == "" or data["email"] == "" or data["password"] == "":
                 return jsonify({"error" : "name,email and password cannot be empty"}),400
             
+            # Check if user already exists
             existing_user = mysession.query(User).filter_by(email=data["email"]).first()
 
             if existing_user:
                 return jsonify({"error":"Email already registered"}),409
             
+            # Hash password
             hashed_pw = bcrypt.generate_password_hash(data['password']).decode('utf-8')
             
+             # Create new user
             new_user = User(
                 full_name=data['full_name'],
                 email=data['email'],
@@ -66,6 +70,7 @@ def register():
             mysession.add(new_user)
             mysession.commit()
 
+              # Generate token
             token=create_access_token(identity=data['email'])
 
             return jsonify({"message":"User registered successfully","token":f"{token}"}),201
