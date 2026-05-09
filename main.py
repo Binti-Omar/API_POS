@@ -120,6 +120,45 @@ def login():
     except Exception as e:
         return jsonify({"error":str(e)})
     
+@app.route("/users",methods=allowed_methods)
+@jwt_required()
+def users():
+    try:
+        method = request.method.lower()
+        if method == "get":
+            user_list = []
+            query =select(User)
+            myusers = list(mysession.scalars(query).all())
+
+            for user in myusers:
+                user_list.append({"id" : user.id,
+                                  "full_name" :  user.full_name,
+                                  "email" :  user.email,})
+                                
+            return jsonify({"data":user_list}),200
+        elif method == "post":
+            data = request.get_json()
+
+            if data.get("full_name") == "" or data.get("email") == "" or data.get("password") == "":
+                return jsonify({"msg": "full_name, email and password required"}), 400
+
+            hashed_pw = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+
+            new_user = User(
+                full_name=data["full_name"],
+                email=data["email"],
+                hashed_pw=hashed_pw,
+                created_at=datetime.utcnow()
+            )
+
+            mysession.add(new_user)
+            mysession.commit()
+
+            return jsonify({"msg": "Successfully added user."}), 201
+    except Exception as e:
+        return jsonify({"error":str(e)}),500
+
+    
 @app.route("/products",methods=allowed_methods)
 @jwt_required()
 def products():
