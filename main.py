@@ -1,3 +1,10 @@
+# rules of a ReST API
+# 1. Data is transferred as key value-pairs called JSON.Sending from JS as JSON Object and from python as dictionary
+# 2. You must define routes/URL 
+# 3. You must define a HTTP method(GET,POST,PUT,DELETE,PATCH)
+# 4. You must define a status code(200,201,404,401,500)
+# 200 → success,201 → created,400 → bad request,401 → unauthorized,404 — Not Found,409 → conflict (email exists),500 → server error
+
 from flask import Flask,request,jsonify
 from flask_jwt_extended import JWTManager,jwt_required,create_access_token
 from flask_bcrypt import Bcrypt
@@ -20,11 +27,14 @@ bcrypt=Bcrypt(app)
 
 DATABASE_URL= "postgresql+psycopg2://postgres:C0717824020@localhost:5432/api_pos"
 
+# Connecting SQLAlchemy to PostgerSql using engine function
 engine = create_engine(DATABASE_URL,echo=False)
 
+# Create  a session to call query methods
 session = sessionmaker(bind=engine)
 mysession = session()
 
+# Create tables automatically
 Base.metadata.create_all(engine)
 
 allowed_methods = ['GET','POST','DELETE','PATCH']
